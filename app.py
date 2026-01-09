@@ -38,7 +38,7 @@ def login_page():
 # --- STUDENT DASHBOARD ---
 def show_student_dashboard():
     user = st.session_state['user']
-    st.header(f"🎓 Student Exam Portal")
+    st.header(f"Student Exam Portal")
     
     student_info = db.execute_query("SELECT id, first_name, last_name FROM students WHERE email = %s", (user['email'],))
     
@@ -78,7 +78,7 @@ def show_student_dashboard():
         if my_exams:
             df = pd.DataFrame(my_exams)
             df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%A, %b %d, %Y')
-            st.success("✅ Your exam schedule is now official!")
+            st.success("Your exam schedule is now official!")
             st.table(df)
             st.info("💡 Don't Forget To Bring Your Student ID!")
         else:
@@ -88,7 +88,7 @@ def show_student_dashboard():
 # --- PROFESSOR DASHBOARD ---
 def show_professor_dashboard():
     user = st.session_state['user']
-    st.header("👨‍🏫 Professor Surveillance Portal")
+    st.header("Professor Surveillance Portal")
     
     prof_info = db.execute_query("SELECT id, full_name FROM professors WHERE email = %s", (user['email'],))
     
@@ -96,7 +96,7 @@ def show_professor_dashboard():
         p = prof_info[0]
         st.subheader(f"Welcome, Prof. {p['full_name']}")
         
-        # ✅ CRITICAL FIX: Check if schedule is published
+        #  CRITICAL FIX: Check if schedule is published
         session_status = db.execute_query("""
             SELECT is_active, name 
             FROM exam_sessions 
@@ -128,7 +128,7 @@ def show_professor_dashboard():
         if my_surveillances:
             df = pd.DataFrame(my_surveillances)
             df['Date'] = pd.to_datetime(df['Date']).dt.strftime('%b %d, %Y')
-            st.success("✅ Your surveillance schedule is now official!")
+            st.success("Your surveillance schedule is now official!")
             st.dataframe(df.drop(columns=["Exam ID"]), use_container_width=True)
             
             st.divider()
@@ -162,13 +162,13 @@ def show_professor_dashboard():
                     csv = pd.DataFrame(student_list).to_csv(index=False).encode('utf-8')
                     st.download_button("📥 Download List", csv, f"attendance_room_{e_id}.csv", "text/csv")
                 else:
-                    st.error("❌ No students seated in this room yet.")
+                    st.error("No students seated in this room yet.")
         else:
             st.info("No surveillance sessions assigned yet.")
 
 # --- ADMIN DASHBOARD ---
 def show_admin_dashboard():
-    st.header("🛠️ Planning Service Dashboard")
+    st.header("Planning Service Dashboard")
     
     with st.expander("📅 Set Exam Session Dates", expanded=True):
         col_date1, col_date2 = st.columns(2)
@@ -202,7 +202,7 @@ def show_admin_dashboard():
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         st.subheader("Run Optimization Engine")
-        if st.button("🚀 Generate Schedule", use_container_width=True):
+        if st.button("Generate Schedule", use_container_width=True):
             if start_dt >= end_dt:
                 st.error("Error: Start date must be before End date.")
             else:
@@ -252,7 +252,7 @@ def show_admin_dashboard():
 
     # --- Infrastructure Viewer ---
     st.divider()
-    with st.expander("🏢 Infrastructure & Room Viewer"):
+    with st.expander("Infrastructure & Room Viewer"):
         dept_view = st.selectbox("View Rooms by Department:", ["All", "DEPT1", "DEPT2", "DEPT3", "DEPT4", "DEPT5", "DEPT6", "DEPT7"])
         r_query = "SELECT name, capacity as physical_cap, (CASE WHEN name LIKE '%AMPHI%' THEN 100 ELSE 20 END) as exam_cap FROM exam_rooms"
         if dept_view != "All":
@@ -276,7 +276,7 @@ def show_admin_dashboard():
 
     st.markdown("---")
     with st.expander("⚠️ Danger Zone"):
-        if st.button("🗑️ Reset All Exams & Seating", use_container_width=True):
+        if st.button("Reset All Exams & Seating", use_container_width=True):
             db.execute_query("DELETE FROM student_seating", fetch=False)
             db.execute_query("DELETE FROM exams", fetch=False)
             st.warning("All data cleared.")
@@ -284,7 +284,7 @@ def show_admin_dashboard():
 
 def show_doyen_dashboard():
     # Force wide layout for a professional feel
-    st.header("🏛️ Strategic Dean Dashboard")
+    st.header("Strategic Dean Dashboard")
     
     engine = SchedulerEngine()
     db = engine.db
@@ -295,7 +295,7 @@ def show_doyen_dashboard():
     
     analytics = engine.get_dean_dashboard(session_id=1)
     if not analytics or not analytics.get('summary'):
-        st.warning("⚠️ No exams scheduled yet. Please run the engine first.")
+        st.warning("No exams scheduled yet. Please run the engine first.")
         return
 
     summary_data = analytics['summary']
@@ -327,7 +327,7 @@ def show_doyen_dashboard():
     st.divider()
 
     # --- 1. STRATEGIC AUDIT (Integrity & Fairness) ---
-    st.subheader("🕵️ Academic Integrity Audit")
+    st.subheader("Academic Integrity Audit")
     
     col_a, col_b = st.columns(2)
     with col_a:
@@ -342,7 +342,7 @@ def show_doyen_dashboard():
             HAVING COUNT(DISTINCT e.module_id) > 1
         """)
         if not student_conflicts:
-            st.success("✅ Student Load: 1 Exam/Day rule respected.")
+            st.success("Student Load: 1 Exam/Day rule respected.")
         else:
             st.error(f"🚩 Conflict: {len(student_conflicts)} overloads detected!")
             with st.expander("View Overloaded Specialties"):
@@ -359,14 +359,14 @@ def show_doyen_dashboard():
         gap_val = load_gap_query[0]['gap'] if load_gap_query else 0
         
         if gap_val <= 7:
-            st.success(f"✅ Professor Fairness: Gap is {gap_val} (Healthy < 7)")
+            st.success(f"Professor Fairness: Gap is {gap_val} (Healthy workload variation)")
         else:
-            st.warning(f"⚖️ Fairness Warning: Gap is {gap_val} (High workload variation)")
+            st.warning(f"Fairness Warning: Gap is {gap_val} (High workload variation)")
 
     st.divider()
 
     # --- 2. ADVANCED ANALYTICS ---
-    st.subheader("📊 Operational Insights")
+    st.subheader("Operational Insights")
     graph_col1, graph_col2 = st.columns(2)
 
     with graph_col1:
@@ -396,22 +396,22 @@ def show_doyen_dashboard():
     st.divider()
 
     # --- 3. FINAL VALIDATION (Decision Zone) ---
-    st.subheader("🏁 Final Schedule Validation")
+    st.subheader("Final Schedule Validation")
     v_col1, v_col2, v_col3 = st.columns([1, 1, 2])
     
     if not is_active:
-        if v_col1.button("✅ APPROVE & PUBLISH", use_container_width=True, type="primary"):
+        if v_col1.button("APPROVE & PUBLISH", use_container_width=True, type="primary"):
             db.execute_query("UPDATE exam_sessions SET is_active = true WHERE id = 1", fetch=False)
             st.balloons()
             st.success("The schedule is now OFFICIAL.")
             st.rerun() # Forces the dashboard to update the status metric
     else:
-        if v_col1.button("❌ REVOKE PUBLICATION", use_container_width=True, type="secondary"):
+        if v_col1.button("REVOKE PUBLICATION", use_container_width=True, type="secondary"):
             db.execute_query("UPDATE exam_sessions SET is_active = false WHERE id = 1", fetch=False)
             st.warning("Schedule reverted to Draft mode.")
             st.rerun()
 
-    if v_col2.button("❌ REJECT / RESET", use_container_width=True):
+    if v_col2.button("REJECT / RESET", use_container_width=True):
         st.error("Schedule flagged for review. Administrator notified.")
         
     with v_col3:
@@ -673,7 +673,7 @@ def show_chef_dept_dashboard():
             # Group by formation
             if 'Formation' in schedule_df.columns:
                 for formation_name in schedule_df['Formation'].unique():
-                    with st.expander(f"📚 {formation_name}"):
+                    with st.expander(f" {formation_name}"):
                         formation_data = schedule_df[schedule_df['Formation'] == formation_name].drop(columns=['Formation'])
                         st.dataframe(formation_data, use_container_width=True, hide_index=True)
             else:
@@ -698,7 +698,7 @@ def show_chef_dept_dashboard():
     st.divider()
 
     # --- PROFESSOR WORKLOAD BREAKDOWN ---
-    with st.expander("📊 Professor Workload Analysis"):
+    with st.expander("Professor Workload Analysis"):
         prof_workload = db.execute_query("""
             SELECT 
                 p.full_name as "Professor",
@@ -727,22 +727,22 @@ def show_chef_dept_dashboard():
     
     with action_col1:
         if not conflicts:
-            if st.button("✅ APPROVE Department Schedule", use_container_width=True, type="primary"):
+            if st.button("APPROVE Department Schedule", use_container_width=True, type="primary"):
                 st.success(f"{dept_name} schedule approved!")
                 st.info("Approval logged. Dean will be notified for final validation.")
         else:
-            st.button("✅ APPROVE Department Schedule", use_container_width=True, disabled=True)
+            st.button("APPROVE Department Schedule", use_container_width=True, disabled=True)
             st.caption("Resolve conflicts first")
     
     with action_col2:
-        if st.button("📋 Request Modifications", use_container_width=True):
+        if st.button("Request Modifications", use_container_width=True):
             st.warning("Modification request submitted to Planning Service.")
     
     with action_col3:
         if conflicts:
             st.error(f"⚠️ {len(conflicts)} conflict(s) must be resolved before approval")
         else:
-            st.success("✅ Department schedule is ready for approval")
+            st.success("Department schedule is ready for approval")
 
 
 # --- APP CONTROL ---
