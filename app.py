@@ -21,7 +21,7 @@ db = DatabaseManager()
 
 # --- LOGIN PAGE ---
 def login_page():
-    st.title("🎓 University Exam System")
+    st.title("University Exam System")
     with st.container():
         st.subheader("Login Portal")
         email = st.text_input("Email")
