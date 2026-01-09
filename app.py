@@ -218,7 +218,7 @@ def show_admin_dashboard():
 
     with col_btn2:
         st.subheader("Seating Management")
-        if st.button("🪑 Repair & Fill Student Seats", use_container_width=True):
+        if st.button("Repair & Fill Student Seats", use_container_width=True):
             with st.spinner("Assigning one unique room per student..."):
                 # 1. Clear current seating
                 db.execute_query("DELETE FROM student_seating", fetch=False)
@@ -262,7 +262,7 @@ def show_admin_dashboard():
         st.dataframe(rooms_df, use_container_width=True, height=300)
 
     if stats['e_count'] > 0:
-        st.subheader("🗓️ Generated Schedule Preview")
+        st.subheader("Generated Schedule Preview")
         preview = db.execute_query("""
             SELECT m.name as "Module", e.exam_date as "Date", e.start_time as "Time", r.name as "Room", p.full_name as "Professor"
             FROM exams e
