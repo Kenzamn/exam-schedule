@@ -133,7 +133,7 @@ def show_professor_dashboard():
             
             st.divider()
             
-            st.subheader("📋 Room Attendance List")
+            st.subheader("Room Attendance List")
             exam_labels = {f"{row['Module']} - {row['Room']} ({row['Time']})": row for row in my_surveillances}
             selected_label = st.selectbox("Select Exam to view Students:", list(exam_labels.keys()))
             
