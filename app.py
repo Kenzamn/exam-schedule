@@ -472,21 +472,24 @@ def show_chef_dept_dashboard():
             JOIN modules m ON e.module_id = m.id
             JOIN formations f ON m.formation_id = f.id
             WHERE f.dept_id = %s AND e.session_id = 1
-        ),
+        ), -- Added the comma here
         student_counts AS (
-            SELECT COUNT(DISTINCT s.id) as total_students
-            FROM students s
-            JOIN formations f ON s.formation_id = f.id -- Adjust this if students join modules directly
+            SELECT COUNT(DISTINCT en.student_id) as total_students
+            FROM formations f
+            JOIN modules m ON f.id = m.formation_id
+            JOIN enrollments en ON m.id = en.module_id
             WHERE f.dept_id = %s
         )
         SELECT 
             c.*, 
-            ec.scheduled_modules, ec.total_exam_sessions, 
-            ec.professors_assigned, ec.active_days,
-            sc.total_students
+            COALESCE(ec.scheduled_modules, 0) as scheduled_modules, 
+            COALESCE(ec.total_exam_sessions, 0) as total_exam_sessions, 
+            COALESCE(ec.professors_assigned, 0) as professors_assigned, 
+            COALESCE(ec.active_days, 0) as active_days,
+            COALESCE(sc.total_students, 0) as total_students
         FROM counts c
-        CROSS JOIN exam_counts ec
-        CROSS JOIN student_counts sc
+        LEFT JOIN exam_counts ec ON TRUE
+        LEFT JOIN student_counts sc ON TRUE;
     """, (dept_id, dept_id, dept_id))
     
     overview = stats[0] if stats else {}
