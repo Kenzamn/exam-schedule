@@ -452,35 +452,42 @@ def show_chef_dept_dashboard():
         st.info("Exam schedule is currently under Dean review. Preview mode active.")
     
     # --- COMPREHENSIVE DEPARTMENT STATISTICS ---
+    # --- FIXED COMPREHENSIVE DEPARTMENT STATISTICS ---
     stats = db.execute_query("""
-        WITH dept_overview AS (
+        WITH counts AS (
             SELECT 
                 COUNT(DISTINCT f.id) as total_formations,
-                COUNT(DISTINCT m.id) as total_modules,
-                COUNT(DISTINCT e.id) as total_exam_sessions,
-                COUNT(DISTINCT e.professor_id) as professors_assigned,
-                SUM(CASE WHEN e.id IS NOT NULL THEN 1 ELSE 0 END) as scheduled_modules,
-                COUNT(DISTINCT s.id) as total_students
+                COUNT(DISTINCT m.id) as total_modules
             FROM formations f
             LEFT JOIN modules m ON f.id = m.formation_id
-            LEFT JOIN exams e ON m.id = e.module_id AND e.session_id = 1
-            LEFT JOIN enrollments en ON m.id = en.module_id
-            LEFT JOIN students s ON en.student_id = s.id
             WHERE f.dept_id = %s
         ),
-        exam_days AS (
-            SELECT COUNT(DISTINCT e.exam_date) as active_days
+        exam_counts AS (
+            SELECT 
+                COUNT(DISTINCT e.module_id) as scheduled_modules,
+                COUNT(DISTINCT e.id) as total_exam_sessions,
+                COUNT(DISTINCT e.professor_id) as professors_assigned,
+                COUNT(DISTINCT e.exam_date) as active_days
             FROM exams e
             JOIN modules m ON e.module_id = m.id
             JOIN formations f ON m.formation_id = f.id
             WHERE f.dept_id = %s AND e.session_id = 1
+        ),
+        student_counts AS (
+            SELECT COUNT(DISTINCT s.id) as total_students
+            FROM students s
+            JOIN formations f ON s.formation_id = f.id -- Adjust this if students join modules directly
+            WHERE f.dept_id = %s
         )
         SELECT 
-            o.*,
-            d.active_days
-        FROM dept_overview o
-        CROSS JOIN exam_days d
-    """, (dept_id, dept_id))
+            c.*, 
+            ec.scheduled_modules, ec.total_exam_sessions, 
+            ec.professors_assigned, ec.active_days,
+            sc.total_students
+        FROM counts c
+        CROSS JOIN exam_counts ec
+        CROSS JOIN student_counts sc
+    """, (dept_id, dept_id, dept_id))
     
     overview = stats[0] if stats else {}
 
