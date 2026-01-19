@@ -45,8 +45,9 @@ class SchedulerEngine:
         if not session_data: return 0
         session = session_data[0]
         
-        rooms = self.db.execute_query("SELECT id, name, capacity FROM exam_rooms ORDER BY capacity DESC")
-        profs = self.db.execute_query("SELECT id, full_name, dept_id, surveillance_count FROM professors")
+        # ✅ FIX: Ensure rooms is always a list, never None
+        rooms = self.db.execute_query("SELECT id, name, capacity FROM exam_rooms ORDER BY capacity DESC") or []
+        profs = self.db.execute_query("SELECT id, full_name, dept_id, surveillance_count FROM professors") or []
         
         modules = self.db.execute_query("""
             SELECT m.id, m.name, m.exam_duration_minutes, 
@@ -56,7 +57,23 @@ class SchedulerEngine:
             JOIN formations f ON m.formation_id = f.id
             GROUP BY m.id, m.name, m.exam_duration_minutes, m.formation_id, f.name
             ORDER BY student_count DESC, m.id ASC
-        """)
+        """) or []
+
+        # ✅ ADD: Early validation check
+        if not rooms:
+            if progress_callback: 
+                progress_callback("ERROR: No exam rooms found in database!", 100)
+            return 0
+        
+        if not profs:
+            if progress_callback: 
+                progress_callback("ERROR: No professors found in database!", 100)
+            return 0
+        
+        if not modules:
+            if progress_callback: 
+                progress_callback("ERROR: No modules found in database!", 100)
+            return 0
 
         processed_modules = set()
         formation_busy_days = defaultdict(set) 
@@ -176,54 +193,10 @@ class SchedulerEngine:
             if progress_callback:
                 progress_callback(f"Scheduling {m_name}...", int((i/total_mods)*100))
         
+        if progress_callback:
+            progress_callback("✅ Schedule generation complete!", 100)
+        
         return scheduled_count
-
-    def get_dean_dashboard(self, session_id):
-        # FIX: The summary now counts DISTINCT module_id for its totals where appropriate
-        summary = self.db.execute_query("""
-            SELECT 
-                COALESCE(ROUND(
-                    (SUM(e.expected_students)::numeric / 
-                    NULLIF(SUM(CASE WHEN r.name LIKE '%%AMPHI%%' THEN 100 ELSE 20 END), 0)::numeric) * 100, 2
-                ), 0) as utilization_rate,
-                COUNT(DISTINCT professor_id) as active_profs,
-                COUNT(DISTINCT module_id) as total_unique_exams,
-                COUNT(e.id) as total_room_slots
-            FROM exams e
-            JOIN exam_rooms r ON e.room_id = r.id
-            WHERE e.session_id = %s
-        """, (session_id,))
-
-        dept_stats = self.db.execute_query("""
-            SELECT f.dept_id, COUNT(DISTINCT e.module_id) as unique_exam_count
-            FROM exams e
-            JOIN modules m ON e.module_id = m.id
-            JOIN formations f ON m.formation_id = f.id
-            WHERE e.session_id = %s
-            GROUP BY f.dept_id
-        """, (session_id,))
-
-        return {
-            "summary": summary[0] if summary and summary[0]['total_room_slots'] > 0 else None, 
-            "departments": dept_stats
-        }
-
-    def get_specialty_stats(self, session_id):
-        # FIX: avg_students_per_day now based on module-level grouping
-        return self.db.execute_query("""
-            SELECT 
-                f.name as formation_name,
-                COUNT(DISTINCT m.id) as total_modules,
-                e.start_time as shift_time,
-                COUNT(DISTINCT e.exam_date) as days_active,
-                SUM(e.expected_students) / NULLIF(COUNT(DISTINCT e.exam_date), 0) as avg_students_per_day
-            FROM exams e
-            JOIN modules m ON e.module_id = m.id
-            JOIN formations f ON m.formation_id = f.id
-            WHERE e.session_id = %s
-            GROUP BY f.name, e.start_time
-            ORDER BY e.start_time, f.name
-        """, (session_id,))
     
     def get_dept_dashboard_optimized(self, dept_id, session_id=1):
         """
