@@ -294,6 +294,8 @@ def show_doyen_dashboard():
     is_active = session_info[0]['is_active'] if session_info else False
     
     analytics = engine.get_dean_dashboard(session_id=1)
+    
+    # ✅ FIX: Handle None or missing summary gracefully
     if not analytics or not analytics.get('summary'):
         st.warning("No exams scheduled yet. Please run the engine first.")
         return
@@ -311,7 +313,7 @@ def show_doyen_dashboard():
         JOIN exam_rooms r ON e.room_id = r.id
         WHERE e.session_id = 1
     """)
-    real_rate = real_util_query[0]['real_rate'] if real_util_query and real_util_query[0]['real_rate'] else 0
+    real_rate = real_util_query[0]['real_rate'] if real_util_query and real_util_query[0].get('real_rate') else 0
 
     # --- TOP METRICS BAR ---
     c1, c2, c3, c4 = st.columns(4)
@@ -356,12 +358,12 @@ def show_doyen_dashboard():
                 SELECT COUNT(id) as cnt FROM exams WHERE session_id = 1 GROUP BY professor_id
             ) sub
         """)
-        gap_val = load_gap_query[0]['gap'] if load_gap_query else 0
+        gap_val = load_gap_query[0]['gap'] if load_gap_query and load_gap_query[0].get('gap') is not None else 0
         
         if gap_val <= 7:
-            st.success(f"Professor Fairness: Gap is {gap_val} (Healthy workload variation)")
+            st.success(f" Professor Fairness: Gap is {gap_val} (Healthy workload variation)")
         else:
-            st.warning(f"Fairness Warning: Gap is {gap_val} (High workload variation)")
+            st.warning(f" Fairness Warning: Gap is {gap_val} (High workload variation)")
 
     st.divider()
 
@@ -378,6 +380,8 @@ def show_doyen_dashboard():
         if daily_occ:
             df_occ = pd.DataFrame(daily_occ)
             st.area_chart(df_occ.set_index('exam_date'))
+        else:
+            st.info("No exam data available yet.")
 
     with graph_col2:
         st.write("**Exams per Specialty**")
@@ -392,6 +396,8 @@ def show_doyen_dashboard():
         if dept_stats:
             df_dept = pd.DataFrame(dept_stats)
             st.bar_chart(df_dept.set_index('formation'))
+        else:
+            st.info("No specialty data available yet.")
 
     st.divider()
 
@@ -400,19 +406,19 @@ def show_doyen_dashboard():
     v_col1, v_col2, v_col3 = st.columns([1, 1, 2])
     
     if not is_active:
-        if v_col1.button("APPROVE & PUBLISH", use_container_width=True, type="primary"):
+        if v_col1.button("✅ APPROVE & PUBLISH", use_container_width=True, type="primary"):
             db.execute_query("UPDATE exam_sessions SET is_active = true WHERE id = 1", fetch=False)
             st.balloons()
-            st.success("The schedule is now OFFICIAL.")
+            st.success("🎉 The schedule is now OFFICIAL.")
             st.rerun() # Forces the dashboard to update the status metric
     else:
-        if v_col1.button("REVOKE PUBLICATION", use_container_width=True, type="secondary"):
+        if v_col1.button("🔙 REVOKE PUBLICATION", use_container_width=True, type="secondary"):
             db.execute_query("UPDATE exam_sessions SET is_active = false WHERE id = 1", fetch=False)
-            st.warning("Schedule reverted to Draft mode.")
+            st.warning("⚠️ Schedule reverted to Draft mode.")
             st.rerun()
 
-    if v_col2.button("REJECT / RESET", use_container_width=True):
-        st.error("Schedule flagged for review. Administrator notified.")
+    if v_col2.button("❌ REJECT / RESET", use_container_width=True):
+        st.error("🚨 Schedule flagged for review. Administrator notified.")
         
     with v_col3:
         if is_active:

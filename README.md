@@ -23,16 +23,17 @@ The database is populated with realistic, large-scale data to test performance a
 
 ## Installation & Setup
 
-### this are some users and passwords to be able to try the website:
-   admin@univ.dz   admin123
-   doyen@univ.dz doyen123
-   lydia.belaid10344@univ-alger.dz  student123
-   m.kaci@univ.dz   prof123
-   
 ### 1. Database Restoration
 ### To view the data, import the provided SQL dump into your PostgreSQL instance:
 ```bash
 psql -U your_username -d your_database_name -f university_local_backup.sql
 
 To recreate the database, please run the attached SQL script. It includes 7 departments and the full enrollment data for 13,100 students. -> DB/university_project.sql
+```
+### these are some users and passwords to be able to try the website:
+   admin@univ.dz   admin123
+   doyen@univ.dz doyen123
+   lydia.belaid10344@univ-alger.dz  student123
+   m.kaci@univ.dz   prof123
 
+   
