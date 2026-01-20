@@ -198,6 +198,33 @@ class SchedulerEngine:
         
         return scheduled_count
     
+    def get_dean_dashboard(self, session_id=1):
+        """
+        Fetches high-level analytics for the Dean's dashboard.
+        """
+        try:
+            summary = self.db.execute_query("""
+                SELECT 
+                    COUNT(DISTINCT e.professor_id) as active_profs,
+                    COUNT(DISTINCT e.module_id) as total_unique_exams,
+                    COUNT(e.id) as total_sessions,
+                    COUNT(DISTINCT e.exam_date) as total_days
+                FROM exams e
+                WHERE e.session_id = %s
+            """, (session_id,))
+
+            return {
+                "summary": summary[0] if summary else {
+                    "active_profs": 0,
+                    "total_unique_exams": 0,
+                    "total_sessions": 0,
+                    "total_days": 0
+                }
+            }
+        except Exception as e:
+            print(f"Error fetching Dean stats: {e}")
+            return {"summary": {}}
+    
     def get_dept_dashboard_optimized(self, dept_id, session_id=1):
         """
         OPTIMIZED: Single query for department dashboard
