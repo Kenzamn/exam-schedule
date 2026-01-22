@@ -19,7 +19,7 @@ class SchedulerEngine:
         self.CAP_SALLE = 20
 
     def run_custom(self, name, start, end, progress_callback=None):
-        # ✅ CRITICAL FIX: Always reset to PENDING when generating new schedule
+        # CRITICAL FIX: Always reset to PENDING when generating new schedule
         self.db.execute_query("""
             INSERT INTO exam_sessions (id, name, start_date, end_date, is_active)
             VALUES (1, %s, %s, %s, false)
@@ -45,7 +45,7 @@ class SchedulerEngine:
         if not session_data: return 0
         session = session_data[0]
         
-        # ✅ FIX: Ensure rooms is always a list, never None
+        #  FIX: Ensure rooms is always a list, never None
         rooms = self.db.execute_query("SELECT id, name, capacity FROM exam_rooms ORDER BY capacity DESC") or []
         profs = self.db.execute_query("SELECT id, full_name, dept_id, surveillance_count FROM professors") or []
         
@@ -59,7 +59,7 @@ class SchedulerEngine:
             ORDER BY student_count DESC, m.id ASC
         """) or []
 
-        # ✅ ADD: Early validation check
+        #  ADD: Early validation check
         if not rooms:
             if progress_callback: 
                 progress_callback("ERROR: No exam rooms found in database!", 100)
@@ -194,7 +194,7 @@ class SchedulerEngine:
                 progress_callback(f"Scheduling {m_name}...", int((i/total_mods)*100))
         
         if progress_callback:
-            progress_callback("✅ Schedule generation complete!", 100)
+            progress_callback("Schedule generation complete!", 100)
         
         return scheduled_count
     

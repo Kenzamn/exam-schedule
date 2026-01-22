@@ -19,7 +19,7 @@ st.set_page_config(page_title="Univ-Alger Exam Manager", layout="wide")
 auth = AuthManager()
 db = DatabaseManager()
 
-# --- LOGIN PAGE ---
+#  LOGIN PAGE 
 def login_page():
     st.title("University Exam System")
     with st.container():
@@ -35,7 +35,7 @@ def login_page():
             else:
                 st.error("Invalid credentials")
 
-# --- STUDENT DASHBOARD ---
+# STUDENT DASHBOARD
 def show_student_dashboard():
     user = st.session_state['user']
     st.header(f"Student Exam Portal")
@@ -46,7 +46,7 @@ def show_student_dashboard():
         s = student_info[0]
         st.subheader(f"Welcome, {s['first_name']} {s['last_name']}")
         
-        # ✅ CRITICAL FIX: Check if schedule is published
+        # CRITICAL FIX: Check if schedule is published
         session_status = db.execute_query("""
             SELECT is_active, name 
             FROM exam_sessions 
@@ -289,7 +289,7 @@ def show_doyen_dashboard():
     engine = SchedulerEngine()
     db = engine.db
     
-    # 1. FETCH LIVE STATUS (Crucial for fixing the "Pending" bug)
+    # FETCH LIVE STATUS (Crucial for fixing the "Pending" bug)
     session_info = db.execute_query("SELECT is_active, name FROM exam_sessions WHERE id = 1")
     is_active = session_info[0]['is_active'] if session_info else False
     
@@ -300,7 +300,7 @@ def show_doyen_dashboard():
 
     summary_data = analytics['summary']
 
-    # 2. CALCULATION: Real Utilization
+    # CALCULATION: Real Utilization
     real_util_query = db.execute_query("""
         SELECT 
             ROUND(
@@ -326,7 +326,7 @@ def show_doyen_dashboard():
 
     st.divider()
 
-    # --- 1. STRATEGIC AUDIT (Integrity & Fairness) ---
+    # STRATEGIC AUDIT (Integrity & Fairness) ---
     st.subheader("Academic Integrity Audit")
     
     col_a, col_b = st.columns(2)
@@ -365,7 +365,7 @@ def show_doyen_dashboard():
 
     st.divider()
 
-    # --- 2. ADVANCED ANALYTICS ---
+    # ADVANCED ANALYTICS 
     st.subheader("Operational Insights")
     graph_col1, graph_col2 = st.columns(2)
 
@@ -395,7 +395,7 @@ def show_doyen_dashboard():
 
     st.divider()
 
-    # --- 3. FINAL VALIDATION (Decision Zone) ---
+    # FINAL VALIDATION (Decision Zone) 
     st.subheader("Final Schedule Validation")
     v_col1, v_col2, v_col3 = st.columns([1, 1, 2])
     
@@ -451,8 +451,8 @@ def show_chef_dept_dashboard():
     if not is_active:
         st.info("Exam schedule is currently under Dean review. Preview mode active.")
     
-    # --- COMPREHENSIVE DEPARTMENT STATISTICS ---
-    # --- FIXED COMPREHENSIVE DEPARTMENT STATISTICS ---
+    # COMPREHENSIVE DEPARTMENT STATISTICS 
+    # FIXED COMPREHENSIVE DEPARTMENT STATISTICS 
     stats = db.execute_query("""
         WITH counts AS (
             SELECT 
@@ -494,7 +494,7 @@ def show_chef_dept_dashboard():
     
     overview = stats[0] if stats else {}
 
-    # --- KEY METRICS ---
+    # KEY METRICS 
     st.subheader("Department Overview")
     col1, col2, col3, col4, col5 = st.columns(5)
     
@@ -523,7 +523,7 @@ def show_chef_dept_dashboard():
 
     st.divider()
 
-    # --- CONFLICT DETECTION & VALIDATION ---
+    # CONFLICT DETECTION & VALIDATION 
     st.subheader("Academic Integrity Validation")
     
     # Check for scheduling conflicts
@@ -588,7 +588,7 @@ def show_chef_dept_dashboard():
 
     st.divider()
 
-    # --- FORMATION-LEVEL BREAKDOWN ---
+    # FORMATION-LEVEL BREAKDOWN 
     st.subheader("Formation Statistics")
     
     formation_stats = db.execute_query("""
@@ -614,7 +614,7 @@ def show_chef_dept_dashboard():
 
     st.divider()
 
-    # --- DETAILED SCHEDULE VIEW ---
+    # DETAILED SCHEDULE VIEW 
     st.subheader("Complete Department Schedule")
     
     # Filter options
@@ -707,7 +707,7 @@ def show_chef_dept_dashboard():
 
     st.divider()
 
-    # --- PROFESSOR WORKLOAD BREAKDOWN ---
+    #  PROFESSOR WORKLOAD BREAKDOWN 
     with st.expander("Professor Workload Analysis"):
         prof_workload = db.execute_query("""
             SELECT 
@@ -729,7 +729,7 @@ def show_chef_dept_dashboard():
         else:
             st.info("No professor assignments yet.")
 
-    # --- VALIDATION ACTION ZONE ---
+    # VALIDATION ACTION ZONE 
     st.divider()
     st.subheader("Department Validation")
     
@@ -757,12 +757,12 @@ def show_chef_dept_dashboard():
 
 # --- APP CONTROL ---
 def main():
-    # 1. Check if user is already logged in
+    # Check if user is already logged in
     if 'user' not in st.session_state:
         login_page()
         return  # Stop here if not logged in
 
-    # 2. If we reach here, the user is logged in
+    #  If we reach here, the user is logged in
     user = st.session_state['user']
     
     # Sidebar Setup
@@ -778,7 +778,7 @@ def main():
 
     st.sidebar.divider()
 
-    # 3. Routing (Using a dictionary for cleaner code)
+    #  Routing (Using a dictionary for cleaner code)
     role = user.get('role')
     
     if role == 'admin':

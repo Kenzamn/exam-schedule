@@ -28,7 +28,7 @@ class DatabaseManager:
                         keepalives_count=5,
                         connect_timeout=10
                     )
-                    print("✅ Connected to NEON Cloud Pool.")
+                    print(" Connected to NEON Cloud Pool.")
                 
                 # 2. Fallback to your local Fedora Postgres
                 else:
@@ -44,9 +44,9 @@ class DatabaseManager:
                         keepalives_interval=10,
                         keepalives_count=5
                     )
-                    print("✅ Connected to LOCAL Fedora Pool.")
+                    print(" Connected to LOCAL Fedora Pool.")
             except Exception as e:
-                print(f"❌ Error creating connection pool: {e}")
+                print(f" Error creating connection pool: {e}")
                 raise
 
     def __init__(self):
@@ -119,7 +119,7 @@ class DatabaseManager:
                 if retry_count < max_retries and any(term in error_msg for term in 
                     ['ssl', 'connection', 'closed', 'server closed', 'timeout', 'unexpectedly']):
                     retry_count += 1
-                    print(f"⚠️  Connection error, retrying ({retry_count}/{max_retries})...")
+                    print(f" Connection error, retrying ({retry_count}/{max_retries})...")
                     
                     # Close bad connection
                     if conn:
@@ -139,7 +139,7 @@ class DatabaseManager:
                     
                     continue  # Retry the query
                 else:
-                    print(f"❌ Query Error: {e}")
+                    print(f" Query Error: {e}")
                     return None
                     
             finally:
@@ -177,7 +177,7 @@ class DatabaseManager:
                 if retry_count < max_retries and any(term in error_msg for term in 
                     ['ssl', 'connection', 'closed', 'server closed', 'timeout']):
                     retry_count += 1
-                    print(f"⚠️  Connection error in batch, retrying ({retry_count}/{max_retries})...")
+                    print(f"  Connection error in batch, retrying ({retry_count}/{max_retries})...")
                     
                     if conn:
                         try:
@@ -195,7 +195,7 @@ class DatabaseManager:
                     
                     continue
                 else:
-                    print(f"❌ Batch Insert Error: {e}")
+                    print(f" Batch Insert Error: {e}")
                     return False
                     
             finally:
@@ -212,6 +212,6 @@ class DatabaseManager:
         if DatabaseManager._connection_pool:
             try:
                 DatabaseManager._connection_pool.closeall()
-                print("🛑 Database connections closed.")
+                print(" Database connections closed.")
             except Exception as e:
-                print(f"❌ Error closing connections: {e}")
+                print(f" Error closing connections: {e}")
